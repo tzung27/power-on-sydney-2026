@@ -1,0 +1,358 @@
+<div class="wrap">
+  <section class="page-head">
+    <p class="eyebrow">Day 1 · 10/27（二）· 下午工作坊 · 實作</p>
+    <h1>打造您的代理程式：實作實驗室</h1>
+    <p class="lede">照著做，大約 30 分鐘完成一個可以現場展示的代理程式：「Windows 11 換機顧問」。業務輸入客戶狀況，它依照你上傳的機型分級表與 FAQ，產出換機建議表、換機理由與寄給老闆的 email。</p>
+    <dl class="facts">
+      <div><dt>完成時間</dt><dd class="mono">基礎 30 分 · 進階 +40 分</dd></div>
+      <div><dt>工具</dt><dd>Microsoft 365 Copilot 的 Agent Builder<br><span class="small">進階：Copilot Studio</span></dd></div>
+      <div><dt>需要</dt><dd>M365 公司帳號 · 3 份知識檔</dd></div>
+      <div><dt>產出</dt><dd>可分享的代理程式 + 3 分鐘 Demo</dd></div>
+    </dl>
+  </section>
+
+  <div class="doc has-toc">
+    <aside class="toc" aria-label="本頁目錄">
+      <p>本頁目錄</p>
+      <ol>
+        <li><a href="#scenario">情境設計</a></li>
+        <li><a href="#prep">事前準備：3 份知識檔</a></li>
+        <li><a href="#build">基礎版：Agent Builder</a></li>
+        <li><a href="#test">測試與驗收</a></li>
+        <li><a href="#advanced">進階版：Copilot Studio</a></li>
+        <li><a href="#demo">3 分鐘展示腳本</a></li>
+        <li><a href="#trouble">常見問題排除</a></li>
+        <li><a href="#lines">金句</a></li>
+      </ol>
+    </aside>
+
+    <div class="content">
+      <section class="blk" id="scenario">
+        <h2><small>SCENARIO</small>情境設計</h2>
+        <div class="grid3">
+          <div class="card"><span class="k">誰在用</span><h3>經銷商業務</h3><p class="small">拜訪 SMB 客戶前後，需要快速給出換機建議，但不熟每一款機型的差異。</p></div>
+          <div class="card"><span class="k">痛點</span><h3>報價前的來回太慢</h3><p class="small">每個案子都要問產品經理、翻規格表、自己寫 email，一個建議要花半天。</p></div>
+          <div class="card"><span class="k">代理程式做什麼</span><h3>3 分鐘產出建議</h3><p class="small">問清需求 → 依分級規則分組配機 → 輸出建議表 → 寫給老闆的 email。</p></div>
+        </div>
+        <div class="flow" style="--n:5">
+          <div><b>業務輸入客戶狀況</b><span>人數、Win10 台數、用途、預算</span></div>
+          <div><b>代理程式補問</b><span>缺的資訊一次問完</span></div>
+          <div><b>依知識檔配機</b><span>只用分級表的機型與價格</span></div>
+          <div><b>輸出建議表與理由</b><span>職務群組 × 等級 × 小計</span></div>
+          <div><b>產出 email</b><span>給客戶老闆的提案信</span></div>
+        </div>
+        <div class="callout"><b>為什麼選這個情境</b><p class="small">它同時展示了代理程式的三個關鍵能力：<b>依據自己的資料回答</b>（grounding）、<b>遵循商業規則</b>（instructions）、<b>產出可直接用的成果</b>（表格與 email）。而且主題就是 Windows 11 換機，和整天的活動主軸一致，展示時不必再解釋背景。</p></div>
+      </section>
+
+      <section class="blk" id="prep">
+        <h2><small>STEP 0 · BEFORE THE LAB</small>事前準備：3 份知識檔</h2>
+        <div class="prose">
+          <p>把下面三段內容各自複製，貼到 Word 存成 <code>.docx</code>（或記事本存成 <code>.txt</code>），檔名照標題。建議出發前就存好放在筆電桌面，現場網路慢也不怕。</p>
+        </div>
+        <div class="callout warn"><b>示範資料</b><p class="small">機型等級與價格是為了練習設計的虛構資料。回台灣正式使用時，換成 Weblink 實際的產品線與報價。</p></div>
+
+        <div class="codebox">
+          <div class="codebar"><span>01_商用機型分級表.docx</span><button class="btn-sm" type="button" data-copy="kb1">複製</button></div>
+<pre id="kb1">商用機型分級表（示範資料，參考價以正式報價為準）
+所有機型皆為 Windows 11 Pro。
+
+【S1 入門辦公】
+- 處理器：Intel Core Ultra 5
+- 記憶體／儲存：16GB / 512GB SSD
+- 特色：14 吋、約 1.4kg、Windows Hello 臉部辨識
+- 適用：櫃台、行政、門市、以文書與瀏覽器為主
+- 參考價：NT$28,000 – 32,000
+
+【S2 安全管理】（主力推薦）
+- 處理器：Intel Core Ultra 5，具備 Intel vPro
+- 記憶體／儲存：16GB / 512GB SSD
+- 特色：Intel vPro 遠端管理（作業系統當機也能遠端修復）、Intel Hardware Shield 韌體防護、指紋 + 臉部辨識
+- 適用：會計、財務、人資、業務；處理敏感資料；公司沒有專職 IT
+- 參考價：NT$35,000 – 40,000
+
+【S3 AI 生產力】（Copilot+ PC）
+- 處理器：Intel Core Ultra 7，具備 Intel vPro，NPU 40+ TOPS
+- 記憶體／儲存：32GB / 1TB SSD
+- 特色：Copilot+ PC 功能（Click to Do、即時字幕翻譯、Windows Studio Effects 視訊效果）、長續航、輕薄
+- 適用：主管、經常外出與視訊的業務、需要大量撰寫與整理資料的人
+- 參考價：NT$45,000 – 55,000
+
+【S4 效能工作站】
+- 處理器：Intel Core Ultra 9，搭配獨立顯示卡
+- 記憶體／儲存：32 – 64GB / 1TB 以上
+- 適用：設計、工程、CAD、影音剪輯
+- 參考價：NT$60,000 起
+
+【分級規則】
+1. 處理客戶或財務敏感資料、或公司沒有專職 IT → 至少 S2。
+2. 主管、經常外出、每週視訊會議超過 5 小時 → S3。
+3. 設計、工程、影音 → S4。
+4. 只做文書、固定座位、預算低於每台 NT$32,000 → S1，但建議主管與財務人員仍配 S2 以上。
+5. 同一家公司建議不超過 3 種等級，方便管理與備品。
+
+【建議加購】
+- Microsoft 365 商務進階版：含 Intune 裝置管理與進階資安
+- 部署服務：Windows Autopilot 設定，新機開箱登入即完成設定
+- 資料搬移服務：舊電腦資料與設定移轉
+- 3 年到府保固
+- USB-C 擴充基座與 27 吋螢幕
+</pre>
+        </div>
+
+        <div class="codebox">
+          <div class="codebar"><span>02_Win10換機FAQ.docx</span><button class="btn-sm" type="button" data-copy="kb2">複製</button></div>
+<pre id="kb2">Windows 10 換機 FAQ
+
+Q1：Windows 10 什麼時候停止支援？
+A：Windows 10 已於 2025 年 10 月 14 日終止支援，之後不再有一般的安全性更新與技術支援。企業可付費購買延伸安全性更新（ESU），但 ESU 只提供安全修補，沒有新功能，且每年費用遞增，只適合作為過渡。
+
+Q2：電腦還能用，為什麼要換？
+A：能開機不等於安全。沒有安全更新的電腦是駭客最容易下手的入口，一台中毒就可能影響整個公司的資料與營運。此外，新的應用程式與周邊會逐步不再支援 Windows 10。
+
+Q3：舊電腦可以直接升級 Windows 11 嗎？
+A：Windows 11 需要 TPM 2.0、支援的處理器與 UEFI 安全開機。大約 5 年以上的電腦多半不符合。即使符合，舊電腦也無法使用 NPU 相關的 AI 功能。
+
+Q4：換到 Windows 11 有什麼好處？
+A：
+- 安全：出廠即開啟硬體信任根、VBS、Credential Guard、Windows Hello 與 BitLocker。
+- 管理：搭配 Intune 與 Windows Autopilot，新機寄到員工手上，登入就自動完成設定。
+- 生產力：Snap 版面配置、Copilot、更好的視訊與多工體驗。
+- AI：Copilot+ PC 具備 NPU，可在裝置上執行 AI 功能，更快、更省電、資料不必上傳。
+
+Q5：員工需要重新學習嗎？
+A：Windows 11 的操作方式與 Windows 10 相近，開始功能表與工作列略有調整，一般員工半天內就能適應。
+
+Q6：Intel vPro 對中小企業有什麼用？
+A：沒有專職 IT 的公司最有感。外包 IT 或經銷商可以遠端開機、遠端修復，就算作業系統當機也能處理，不必派人到現場。Intel Hardware Shield 則在作業系統底下的韌體層提供防護。
+
+Q7：資料怎麼搬？
+A：可使用 Windows 備份搭配 OneDrive，把檔案、設定與應用程式清單帶到新電腦；也可以加購資料搬移服務。
+</pre>
+        </div>
+
+        <div class="codebox">
+          <div class="codebar"><span>03_話術與郵件範本.docx</span><button class="btn-sm" type="button" data-copy="kb3">複製</button></div>
+<pre id="kb3">話術與郵件範本
+
+【三個換機理由的寫法】
+每個理由用「客戶的痛點 → 我們的解法 → 帶來的結果」三段式，一句話完成。
+範例：擔心客戶資料外洩 → S2 機型的 Windows Hello、BitLocker 與 vPro 遠端管理 → 筆電遺失也不怕資料被讀取，IT 可以遠端鎖定。
+
+【異議回應】
+- 「Windows 10 還能用」：能開機不等於安全。沒有更新的電腦，就像沒有鎖的門。
+- 「預算不夠」：可以分兩批換，先換處理敏感資料的人；或改用分期與租賃方案。
+- 「怕員工不會用」：操作跟 Windows 10 很像，我們提供 1 小時上手課程。
+
+【給客戶老闆的 email 範本】
+主旨：［公司名稱］Windows 11 換機建議與預算規劃
+
+［稱謂］您好：
+
+感謝您撥空與我們討論。依據貴公司目前 ［X］ 台 Windows 10 電腦的狀況，以及 ［主要需求］，我們建議如下：
+
+1. 換機規劃：［表格摘要：等級 × 數量 × 小計］
+2. 三個主要效益：［理由 1］、［理由 2］、［理由 3］
+3. 導入方式：新機預先完成設定，員工開機登入即可使用，舊資料協助搬移，不影響營運。
+
+總預算約 NT$［金額］（參考價，以正式報價為準）。若您方便，我們可以安排 30 分鐘實機體驗。
+
+［業務姓名］
+［公司］｜［電話］
+</pre>
+        </div>
+      </section>
+
+      <section class="blk" id="build">
+        <h2><small>BASIC BUILD · ~30 MIN</small>基礎版：用 Agent Builder 建立代理程式</h2>
+        <div class="callout"><b>介面文字</b><p class="small">介面可能是英文或中文，下方兩種都標示。Microsoft 會持續調整介面，按鈕位置若略有不同，找相同名稱即可。</p></div>
+        <ol class="steps">
+          <li>
+            <h3>開啟 Microsoft 365 Copilot<span class="time">1 分</span></h3>
+            <p>瀏覽器開啟 <code>m365copilot.com</code>（或 Windows 上的 Microsoft 365 Copilot App），用公司帳號登入。</p>
+            <p>左側欄找到 <b>代理程式（Agents）</b> → <b>建立代理程式（Create agent / New agent）</b>。</p>
+          </li>
+          <li>
+            <h3>切到「設定（Configure）」分頁<span class="time">1 分</span></h3>
+            <p>Agent Builder 有兩種建立方式：<b>描述（Describe）</b>用對話建立，<b>設定（Configure）</b>直接填欄位。實作時用「設定」，結果最可控。</p>
+          </li>
+          <li>
+            <h3>填寫名稱與描述<span class="time">2 分</span></h3>
+            <div class="scroll"><table class="tbl"><tbody>
+              <tr><td>名稱（Name）</td><td><code>Windows 11 換機顧問</code></td></tr>
+              <tr><td>描述（Description）</td><td><code>協助經銷商業務為中小企業規劃 Windows 10 到 Windows 11 的換機方案，產出配機建議表、換機理由與提案 email。</code></td></tr>
+            </tbody></table></div>
+            <p class="small muted">圖示可選一個電腦或藍色系圖示，展示時比較好認。</p>
+          </li>
+          <li>
+            <h3>貼上指令（Instructions）<span class="time">3 分</span></h3>
+            <p>這段是代理程式的「工作守則」，決定它怎麼問、怎麼答、不能做什麼。整段複製貼上：</p>
+            <div class="codebox">
+              <div class="codebar"><span>Instructions</span><button class="btn-sm" type="button" data-copy="ins">複製</button></div>
+<pre id="ins"># 角色
+你是「Windows 11 換機顧問」，協助台灣的經銷商業務，為 10–200 人的中小企業規劃 Windows 10 到 Windows 11 的換機方案。
+
+# 資料來源（嚴格遵守）
+- 機型與價格只能使用知識檔「01_商用機型分級表」，不得自行編造型號、規格或價格。
+- Windows 10／11 的說明以「02_Win10換機FAQ」為準。
+- 話術與 email 格式依照「03_話術與郵件範本」。
+- 知識檔找不到答案時，直接說「這部分需要再確認」，並列出要詢問客戶的問題。
+
+# 對話流程
+1. 如果使用者缺少以下資訊，先用條列一次問完（最多 4 題）：電腦總數與 Windows 10 台數、主要使用情境（外勤、視訊、設計、行政）、每台預算、有沒有專職 IT。
+2. 依「分級規則」把人員分成職務群組，指定建議等級與數量。
+3. 用表格輸出：職務群組｜台數｜建議等級｜主要理由｜單價區間｜小計區間，最後一列為總計。
+4. 列出 3 個換機理由，每個都用「痛點 → 解法 → 結果」一句話寫成。
+5. 建議最多 3 個加購項目，說明對客戶的好處。
+6. 使用者要求時，依範本產出給客戶老闆的 email（300 字以內）。
+
+# 語氣與格式
+- 使用繁體中文與台灣用語，專業但口語，句子簡短。
+- 金額使用新台幣，並註明「參考價，以正式報價為準」。
+- 不貶低其他品牌，不承諾折扣或交期。</pre>
+            </div>
+          </li>
+          <li>
+            <h3>加入知識（Knowledge）<span class="time">5 分</span></h3>
+            <p>在 <b>知識（Knowledge）</b> 區塊選 <b>上傳檔案</b>，把 Step 0 的三份檔案上傳。</p>
+            <ul>
+              <li>網頁搜尋（Web search）建議<b>關閉</b>，或只加入 <code>https://www.microsoft.com/windows</code>，避免代理程式引用來路不明的價格。</li>
+              <li>如果看不到上傳選項，把三份檔案放到自己的 OneDrive 或 SharePoint 資料夾，改用「加入 SharePoint／OneDrive」並貼上連結。</li>
+              <li>上傳後等 1–3 分鐘讓檔案完成處理再測試。</li>
+            </ul>
+          </li>
+          <li>
+            <h3>設定開場提示（Starter prompts）<span class="time">3 分</span></h3>
+            <p>開場提示是使用者點一下就能送出的按鈕，展示時最好用。建立以下四個：</p>
+            <div class="scroll"><table class="tbl">
+              <thead><tr><th>標題</th><th>提示內容</th></tr></thead>
+              <tbody>
+                <tr><td>規劃換機方案</td><td>客戶是 25 人的會計師事務所，有 18 台 Windows 10 電腦，常外出到客戶公司查帳，擔心資料外洩，沒有專職 IT，預算每台 4 萬元以內。請建議換機方案。</td></tr>
+                <tr><td>回應「還能用」</td><td>客戶說 Windows 10 還能用，不想現在換，我要怎麼回應？給我三種說法。</td></tr>
+                <tr><td>寫提案信</td><td>把剛才的方案寫成一封給客戶老闆的 email。</td></tr>
+                <tr><td>解釋 Copilot+ PC</td><td>用老闆聽得懂的話，說明 Copilot+ PC 和一般 Windows 11 電腦差在哪裡，100 字以內。</td></tr>
+              </tbody>
+            </table></div>
+          </li>
+          <li>
+            <h3>在右側測試窗格試跑<span class="time">8 分</span></h3>
+            <p>依序點四個開場提示，對照下一節的驗收清單。答案不對就回去改 Instructions，改完直接再測，不必重建。</p>
+          </li>
+          <li>
+            <h3>建立並分享<span class="time">2 分</span></h3>
+            <p>按 <b>建立（Create）</b>。分享範圍選 <b>組織中的特定人員</b>（實作時可先選「只有我」）。完成後把代理程式釘選在左側欄，展示時一鍵開啟。</p>
+            <p class="small muted">也可以在 Teams 的 Copilot 中使用同一個代理程式，展示「業務在 Teams 裡就能問」的情境。</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="blk" id="test">
+        <h2><small>ACCEPTANCE TEST</small>測試與驗收</h2>
+        <p class="muted">每個提示都跑一次，全部打勾才算完成。勾選會記在這台裝置。</p>
+        <div class="progress"><div class="bar" data-progress-for="lab"><i></i></div><span class="count mono small">0 / 0</span></div>
+        <div class="checklist" data-checklist="lab">
+          <fieldset>
+            <legend>提示 1 · 規劃換機方案</legend>
+            <label><input type="checkbox" id="t1a"><span>輸出表格，台數加總為 18 台</span></label>
+            <label><input type="checkbox" id="t1b"><span>會計、查帳人員建議 S2（理由提到敏感資料、沒有專職 IT、vPro 遠端管理）</span></label>
+            <label><input type="checkbox" id="t1c"><span>主管或常外出者可能建議 S3，且有說明超出預算的取捨</span></label>
+            <label><input type="checkbox" id="t1d"><span>價格只出現分級表中的區間，並註明「參考價」</span></label>
+            <label><input type="checkbox" id="t1e"><span>有 3 個「痛點 → 解法 → 結果」換機理由</span></label>
+          </fieldset>
+          <fieldset>
+            <legend>提示 2–4</legend>
+            <label><input type="checkbox" id="t2"><span>「還能用」的回應引用了 2025/10/14 終止支援與安全風險</span></label>
+            <label><input type="checkbox" id="t3"><span>email 套用範本格式，300 字以內，有總預算與實機體驗邀約</span></label>
+            <label><input type="checkbox" id="t4"><span>Copilot+ PC 說明提到 NPU 與裝置上 AI，100 字以內</span></label>
+          </fieldset>
+          <fieldset>
+            <legend>防呆測試</legend>
+            <label><input type="checkbox" id="t5"><span>問「幫我推薦 MacBook」時，代理程式不貶低品牌，並回到知識檔範圍</span></label>
+            <label><input type="checkbox" id="t6"><span>只說「客戶要換電腦」時，代理程式先補問需求，而不是直接亂推薦</span></label>
+          </fieldset>
+        </div>
+      </section>
+
+      <section class="blk" id="advanced">
+        <h2><small>ADVANCED · +40 MIN</small>進階版：用 Copilot Studio 加上「換機評估」主題</h2>
+        <div class="prose">
+          <p>基礎版靠模型自己判斷要問什麼。進階版用 Copilot Studio 把「需求訪談」做成固定流程，每次都問同樣的四題，資料更完整，也能發布到 Teams 讓整個業務團隊使用。</p>
+        </div>
+        <ol class="steps">
+          <li>
+            <h3>建立代理程式</h3>
+            <p>開啟 <code>copilotstudio.microsoft.com</code> → <b>建立（Create）</b> → <b>新代理程式（New agent）</b> → 切到 <b>設定（Configure）</b>，名稱、描述、Instructions 與基礎版相同，並上傳三份知識檔。</p>
+          </li>
+          <li>
+            <h3>新增主題（Topic）</h3>
+            <p><b>主題（Topics）</b> → <b>新增主題</b> → <b>從空白開始</b>，命名為「換機評估」。觸發描述填：<code>使用者想要評估或規劃客戶的電腦換機方案</code>。</p>
+          </li>
+          <li>
+            <h3>加入四個「提問（Question）」節點</h3>
+            <div class="scroll"><table class="tbl">
+              <thead><tr><th>問題</th><th>識別為</th><th>變數名稱</th></tr></thead>
+              <tbody>
+                <tr><td>客戶目前有幾台 Windows 10 電腦？</td><td>數字（Number）</td><td><code>Win10Count</code></td></tr>
+                <tr><td>主要的使用情境是？</td><td>多重選項：行政文書／外勤業務／視訊會議多／設計工程</td><td><code>UseCase</code></td></tr>
+                <tr><td>每台預算大約多少？</td><td>數字（Number）</td><td><code>Budget</code></td></tr>
+                <tr><td>公司有專職 IT 人員嗎？</td><td>布林（是／否）</td><td><code>HasIT</code></td></tr>
+              </tbody>
+            </table></div>
+          </li>
+          <li>
+            <h3>加入「產生式回答」節點</h3>
+            <p>新增 <b>建立產生式回答（Create generative answers）</b>節點，輸入（Input）用公式組合變數，例如：</p>
+            <div class="codebox"><div class="codebar"><span>Input</span><button class="btn-sm" type="button" data-copy="pfx">複製</button></div>
+<pre id="pfx">"請依分級規則規劃換機方案：Windows 10 共 " & Topic.Win10Count & " 台，主要情境：" & Topic.UseCase & "，每台預算 NT$" & Topic.Budget & "，有專職 IT：" & Topic.HasIT</pre></div>
+            <p class="small muted">資料來源選代理程式的知識（三份檔案）。</p>
+          </li>
+          <li>
+            <h3>結尾加一個提問</h3>
+            <p>最後加入提問節點：「需要我把方案寫成給老闆的 email 嗎？」選「是」時，用訊息節點引導使用者輸入「寫提案信」。</p>
+          </li>
+          <li>
+            <h3>測試並發布到 Teams</h3>
+            <p>在右側 <b>測試代理程式</b>輸入「我想幫客戶規劃換機」，確認依序問了四題。完成後 <b>發布（Publish）</b> → <b>通道（Channels）</b> → 加入 <b>Teams 與 Microsoft 365 Copilot</b>。</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="blk" id="demo">
+        <h2><small>DEMO SCRIPT · 3 MIN</small>3 分鐘展示腳本</h2>
+        <div class="timer" data-timer>
+          <div class="toolbar"><span class="timer-clock">00:00</span><button class="btn primary" type="button" data-start>開始計時</button><button class="btn" type="button" data-reset>重設</button></div>
+          <ol class="timer-steps">
+            <li data-at="0"><span class="mono">00:00</span><span>開場痛點：「業務每做一份換機建議要半天，因為要翻規格表、問產品經理、自己寫信。」</span></li>
+            <li data-at="25"><span class="mono">00:25</span><span>開啟代理程式，說明它只讀我們自己的分級表與 FAQ，不會亂報價。</span></li>
+            <li data-at="45"><span class="mono">00:45</span><span>點「規劃換機方案」，等待時說明客戶情境：25 人會計師事務所。</span></li>
+            <li data-at="80"><span class="mono">01:20</span><span>指出表格：會計人員配 S2，理由是 vPro 遠端管理與資料保護；台數加總剛好 18。</span></li>
+            <li data-at="115"><span class="mono">01:55</span><span>點「寫提案信」，展示可直接寄出的 email。</span></li>
+            <li data-at="150"><span class="mono">02:30</span><span>收尾：從半天縮到 3 分鐘，而且每個業務給出的建議都一致。</span></li>
+            <li data-at="170"><span class="mono">02:50</span><span>金句結束：「代理程式不取代業務，它讓每個業務都像資深業務。」</span></li>
+          </ol>
+        </div>
+        <div class="callout ok"><b>加分演出（有 Copilot+ PC 時）</b><p class="small">在客戶提供的設備清單 PDF 上使用 Click to Do（按住 Windows 鍵再點擊，或 <kbd>Win</kbd> + <kbd>Q</kbd>）摘要內容，再把摘要貼給代理程式。一次展示「裝置端 AI + 代理程式」的組合。</p></div>
+      </section>
+
+      <section class="blk" id="trouble">
+        <h2><small>TROUBLESHOOTING</small>常見問題排除</h2>
+        <div class="qa-list">
+          <details class="qa"><summary>找不到「建立代理程式」</summary><div class="qa-body"><p>公司管理員可能關閉了建立代理程式的權限。現場先用講師提供的實驗帳號；回台灣後請 IT 在 Microsoft 365 系統管理中心確認代理程式相關設定。</p></div></details>
+          <details class="qa"><summary>代理程式自己編機型或價格</summary><div class="qa-body"><p>確認網頁搜尋已關閉，並在 Instructions 最上方加一句：「若知識檔沒有的機型或價格，一律回答需要再確認。」</p></div></details>
+          <details class="qa"><summary>回答沒有引用上傳的檔案</summary><div class="qa-body"><p>檔案可能還在處理，等 2–3 分鐘。也可以在提示中點名：「請依 01_商用機型分級表 回答」。</p></div></details>
+          <details class="qa"><summary>表格台數加總錯誤</summary><div class="qa-body"><p>在 Instructions 第 3 點補上：「輸出前自行檢查台數加總等於 Windows 10 台數。」</p></div></details>
+          <details class="qa"><summary>回答太長，展示時講不完</summary><div class="qa-body"><p>在語氣與格式加上：「每次回答不超過 250 字，表格除外。」</p></div></details>
+        </div>
+      </section>
+
+      <section class="blk" id="lines">
+        <h2><small>KEY LINES</small>金句</h2>
+        <div class="quotes">
+          <figure class="quote big"><blockquote>代理程式不取代業務，它讓每個業務都像資深業務。</blockquote><figcaption>展示結尾</figcaption></figure>
+          <figure class="quote"><blockquote>給它你的資料、你的規則，它就給你一致的答案。</blockquote><figcaption>說明 grounding</figcaption></figure>
+          <figure class="quote"><blockquote>從半天到三分鐘，省下的時間就是多拜訪一個客戶。</blockquote><figcaption>說明商業價值</figcaption></figure>
+          <figure class="quote"><blockquote>會用 Word 的人，就會做代理程式。</blockquote><figcaption>降低客戶門檻</figcaption></figure>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
