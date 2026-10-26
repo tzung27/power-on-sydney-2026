@@ -2,6 +2,8 @@
 
 Microsoft × Intel 合作夥伴活動（2026/10/27–28，North Sydney）的行前指南、場次預習、實作步驟、簡報檔與操作手冊。
 
+**網站：https://tzung27.github.io/power-on-sydney-2026/**（`site/` 推送到 main 後由 GitHub Actions 自動發布）
+
 > 場次內容為依官方議程題目所做的預測與準備；產品功能、介面與數據請以 Microsoft／Intel 官方資料為準。機型、價格、KPI 與客戶案例皆為練習用的虛構示範資料。
 
 ## 內容
