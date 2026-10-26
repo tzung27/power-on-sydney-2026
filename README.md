@@ -15,6 +15,7 @@ Microsoft × Intel 合作夥伴活動（2026/10/27–28，North Sydney）的行�
 | `deliverables/02_Agent_Lab_Demo_EN.pptx` | 代理程式實驗室 3 分鐘展示（7 頁） |
 | `deliverables/03_SMB_90Day_Plan_Report_EN.pptx` | 第二天小組工作坊 3 分鐘報告（7 頁） |
 | `deliverables/Power_On_雪梨_實作與演練操作手冊.docx` / `.pdf` | 35 頁操作手冊：詳細步驟、流程圖、功能圖、圖表、檢查表與金句 |
+| `deliverables/操作手冊_分章/` | 同一份手冊拆成 9 個獨立檔案：第 1–7 章與附錄 A、B 各一檔 |
 | `行前準備.docx` | 原始行前資訊 |
 | `tools/` | 重新產生網站、簡報與手冊的腳本 |
 
@@ -35,5 +36,5 @@ cd tools/office
 npm install
 node decks.js ../../deliverables            # 需設定 PPTX_SKILL 指向 apply_theme.js 所在位置
 node diagrams.js diagrams.pptx              # 再用 export_slides.ps1 匯出 diag/*.png
-node guide.js ../../deliverables/手冊.docx   # 再用 finish_docx.ps1 更新目錄並輸出 PDF
+node guide.js ../../deliverables/手冊.docx ../../deliverables/操作手冊_分章   # 合併版 + 分章檔；再用 finish_docx.ps1 更新目錄並輸出 PDF
 ```

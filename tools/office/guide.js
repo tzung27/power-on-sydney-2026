@@ -12,8 +12,8 @@ const C = { navy: "0D1B33", ink: "1F2A3D", muted: "55627A", blue: "0A5BD3", jac:
   line: "D8DFEA", tintBlue: "E2ECFC", tintJac: "F1ECFB", tintGreen: "E0F2E8", tintOrange: "FBEEDD", tintGrey: "EEF3FA" };
 const FONT = { ascii: "Segoe UI", hAnsi: "Segoe UI", eastAsia: "Microsoft JhengHei", cs: "Segoe UI" };
 const TW = 9026; // A4 with 1" margins
-const body = [];
-const numbering = [];
+let body = [];
+let numbering = [];
 let listId = 0;
 
 // "**bold**" inline markup → runs
@@ -21,7 +21,8 @@ function runs(text, o = {}) {
   return String(text).split("**").map((part, i) => new TextRun({ text: part, bold: o.bold || i % 2 === 1, color: o.color, size: o.size, italics: o.italics, font: o.font }));
 }
 const P = (text, o = {}) => body.push(new Paragraph({ children: runs(text, o), spacing: { after: o.after ?? 120, line: 340 }, alignment: o.align }));
-const H1 = (text) => body.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(text)], pageBreakBefore: true }));
+let PB = true; // page break before each chapter (combined guide only)
+const H1 = (text) => { body.push({ __chapter: text }); body.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(text)], pageBreakBefore: PB })); };
 const H2 = (text) => body.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(text)] }));
 const H3 = (text) => body.push(new Paragraph({ heading: HeadingLevel.HEADING_3, children: [new TextRun(text)] }));
 
@@ -92,6 +93,7 @@ function img(n, alt) {
     children: [new ImageRun({ type: "png", data, transformation: { width: 600, height: 338 }, altText: { title: alt, description: alt, name: alt } })] }));
 }
 
+function writeAll() {
 // ------------------------------------------------------------------ cover
 body.push(new Paragraph({ spacing: { before: 2400, after: 200 }, children: [new TextRun({ text: "POWER ON: WINDOWS MEANS BUSINESS · SYDNEY", bold: true, color: C.blue, size: 22, characterSpacing: 40 })] }));
 body.push(new Paragraph({ spacing: { after: 200 }, children: [new TextRun({ text: "雪梨活動實作與演練操作手冊", bold: true, size: 56, color: C.navy })] }));
@@ -495,32 +497,66 @@ table(["檔案", "用途", "頁數", "搭配章節"], [
 ], [3, 3.4, 0.6, 1], {});
 tip("修改建議", ["示範數字（機型價格、平均單價、KPI）請換成實際資料後再對外使用。", "簡報使用主題色與版面配置，可在 PowerPoint 的「設計」與「投影片母片」統一調整。"]);
 
+}
+
 // ------------------------------------------------------------------ document
-const doc = new Document({
-  creator: "Power On Sydney prep", title: "雪梨活動實作與演練操作手冊",
-  styles: {
-    default: { document: { run: { font: FONT, size: 21, color: C.ink } } },
-    paragraphStyles: [
-      { id: "TOC1", name: "toc 1", basedOn: "Normal", next: "Normal", run: { size: 20, bold: true, font: FONT }, paragraph: { spacing: { before: 60, after: 0, line: 260 } } },
-      { id: "TOC2", name: "toc 2", basedOn: "Normal", next: "Normal", run: { size: 18, font: FONT }, paragraph: { spacing: { before: 0, after: 0, line: 250 }, indent: { left: 360 } } },
-      { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true,
-        run: { size: 36, bold: true, color: C.navy, font: FONT }, paragraph: { spacing: { before: 0, after: 240 }, outlineLevel: 0 } },
-      { id: "Heading2", name: "Heading 2", basedOn: "Normal", next: "Normal", quickFormat: true,
-        run: { size: 28, bold: true, color: C.blue, font: FONT }, paragraph: { spacing: { before: 320, after: 140 }, outlineLevel: 1, keepNext: true } },
-      { id: "Heading3", name: "Heading 3", basedOn: "Normal", next: "Normal", quickFormat: true,
-        run: { size: 23, bold: true, color: C.ink, font: FONT }, paragraph: { spacing: { before: 200, after: 100 }, outlineLevel: 2, keepNext: true } },
-    ],
-  },
-  numbering: { config: [
-    { reference: "bullets", levels: [
-      { level: 0, format: LevelFormat.BULLET, text: "•", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 300 } } } },
-      { level: 1, format: LevelFormat.BULLET, text: "–", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 1260, hanging: 300 } } } }] },
-    ...numbering] },
-  sections: [{
-    properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
-    headers: { default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: "Power On 雪梨｜實作與演練操作手冊", size: 16, color: C.muted })] })] }) },
-    footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "第 ", size: 16, color: C.muted }), new TextRun({ children: [PageNumber.CURRENT], size: 16, color: C.muted }), new TextRun({ text: " 頁", size: 16, color: C.muted })] })] }) },
-    children: body,
-  }],
-});
-Packer.toBuffer(doc).then((buf) => { fs.writeFileSync(OUT, buf); console.log("wrote", OUT); });
+function makeDoc(children, title, headerText) {
+  return new Document({
+    creator: "Power On Sydney prep", title,
+    styles: {
+      default: { document: { run: { font: FONT, size: 21, color: C.ink } } },
+      paragraphStyles: [
+        { id: "TOC1", name: "toc 1", basedOn: "Normal", next: "Normal", run: { size: 20, bold: true, font: FONT }, paragraph: { spacing: { before: 60, after: 0, line: 260 } } },
+        { id: "TOC2", name: "toc 2", basedOn: "Normal", next: "Normal", run: { size: 18, font: FONT }, paragraph: { spacing: { before: 0, after: 0, line: 250 }, indent: { left: 360 } } },
+        { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true,
+          run: { size: 36, bold: true, color: C.navy, font: FONT }, paragraph: { spacing: { before: 0, after: 240 }, outlineLevel: 0 } },
+        { id: "Heading2", name: "Heading 2", basedOn: "Normal", next: "Normal", quickFormat: true,
+          run: { size: 28, bold: true, color: C.blue, font: FONT }, paragraph: { spacing: { before: 320, after: 140 }, outlineLevel: 1, keepNext: true } },
+        { id: "Heading3", name: "Heading 3", basedOn: "Normal", next: "Normal", quickFormat: true,
+          run: { size: 23, bold: true, color: C.ink, font: FONT }, paragraph: { spacing: { before: 200, after: 100 }, outlineLevel: 2, keepNext: true } },
+      ],
+    },
+    numbering: { config: [
+      { reference: "bullets", levels: [
+        { level: 0, format: LevelFormat.BULLET, text: "•", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 300 } } } },
+        { level: 1, format: LevelFormat.BULLET, text: "–", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 1260, hanging: 300 } } } }] },
+      ...numbering] },
+    sections: [{
+      properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
+      headers: { default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: headerText, size: 16, color: C.muted })] })] }) },
+      footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "第 ", size: 16, color: C.muted }), new TextRun({ children: [PageNumber.CURRENT], size: 16, color: C.muted }), new TextRun({ text: " 頁", size: 16, color: C.muted })] })] }) },
+      children,
+    }],
+  });
+}
+const isMarker = (x) => x && x.__chapter !== undefined;
+function fresh() { body = []; numbering = []; listId = 0; writeAll(); }
+
+// Split-file names, in chapter order.
+const SPLIT = ["01_手冊導覽", "02_實作一_打造您的代理程式", "03_實作二_裝置探索提問", "04_實作三_Windows11定位簡報與展示演練",
+  "05_第二天_SMB加速小組工作坊", "06_Envisioning_Framework客戶工作坊", "07_實機操作_Intel_Windows裝置試玩清單", "附錄A_金句中英對照", "附錄B_簡報檔使用說明"];
+
+(async () => {
+  // Combined guide: cover, TOC, every chapter on a new page.
+  PB = true; fresh();
+  const all = makeDoc(body.filter((x) => !isMarker(x)), "雪梨活動實作與演練操作手冊", "Power On 雪梨｜實作與演練操作手冊");
+  fs.writeFileSync(OUT, await Packer.toBuffer(all)); console.log("wrote", OUT);
+
+  // One file per chapter/appendix. Content is regenerated so no object is shared between documents.
+  const splitDir = process.argv[3];
+  if (!splitDir) return;
+  fs.mkdirSync(splitDir, { recursive: true });
+  PB = false; fresh();
+  const starts = body.map((x, i) => (isMarker(x) ? i : -1)).filter((i) => i >= 0);
+  if (starts.length !== SPLIT.length) throw new Error(`expected ${SPLIT.length} chapters, found ${starts.length}`);
+  for (let k = 0; k < starts.length; k++) {
+    PB = false; fresh(); // rebuild so each document gets its own paragraph objects
+    const title = body[starts[k]].__chapter;
+    const part = body.slice(starts[k] + 1, k + 1 < starts.length ? starts[k + 1] : body.length);
+    part.push(new Paragraph({ spacing: { before: 240 }, children: [new TextRun({
+      text: `本檔摘自《雪梨活動實作與演練操作手冊》的「${title.replace(/\s+/g, " ")}」。場次內容為預測與準備，機型、價格、KPI 與客戶案例為練習用的虛構示範資料。`, size: 16, color: C.muted })] }));
+    const file = path.join(splitDir, SPLIT[k] + ".docx");
+    fs.writeFileSync(file, await Packer.toBuffer(makeDoc(part, title.replace(/\s+/g, " "), "Power On 雪梨｜" + title.replace(/\s+/g, " "))));
+    console.log("wrote", file);
+  }
+})().catch((e) => { console.error(e); process.exit(1); });
